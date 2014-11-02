@@ -29,6 +29,10 @@
 	vertical-align: middle;
 }
 
+/* =BLOKK Fonts
+-------------------------------------------------------------- */
+@include font-face(BLOKKNeue-Regular, '../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular');
+
 /* =Typography
 -------------------------------------------------------------- */
 html {
