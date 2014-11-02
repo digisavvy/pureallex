@@ -23,14 +23,14 @@ class WP_Comments_List_Table extends WP_List_Table {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @since 3.1.0
 	 * @access public
 	 *
 	 * @see WP_List_Table::__construct() for more information on default arguments.
 	 *
 	 * @param array $args An associative array of arguments.
-	 */	
+	 */
 	public function __construct( $args = array() ) {
 		global $post_id;
 
@@ -242,7 +242,8 @@ class WP_Comments_List_Table extends WP_List_Table {
 <?php
 		if ( 'top' == $which ) {
 ?>
-			<select name="comment_type">
+			<label class="screen-reader-text" for="filter-by-comment-type"><?php _e( 'Filter by comment type' ); ?></label>
+			<select id="filter-by-comment-type" name="comment_type">
 				<option value=""><?php _e( 'All comment types' ); ?></option>
 <?php
 				/**
@@ -474,11 +475,11 @@ class WP_Comments_List_Table extends WP_List_Table {
 			if ( 'spam' != $the_comment_status && 'trash' != $the_comment_status ) {
 				$actions['edit'] = "<a href='comment.php?action=editcomment&amp;c={$comment->comment_ID}' title='" . esc_attr__( 'Edit comment' ) . "'>". __( 'Edit' ) . '</a>';
 
-				$format = '<a data-comment-id="%d" data-post-id="%d" class="%s" title="%s" href="#">%s</a>';
+				$format = '<a data-comment-id="%d" data-post-id="%d" data-action="%s" class="%s" title="%s" href="#">%s</a>';
 
-				$actions['quickedit'] = sprintf( $format, $comment->comment_ID, $post->ID, 'vim-q edit-comment-inline', esc_attr__( 'Quick Edit' ), __( 'Quick Edit' ) );
+				$actions['quickedit'] = sprintf( $format, $comment->comment_ID, $post->ID, 'edit', 'vim-q comment-inline', esc_attr__( 'Quick Edit' ), __( 'Quick Edit' ) );
 
-				$actions['reply'] = sprintf( $format, $comment->comment_ID, $post->ID, 'vim-r reply-comment-inline', esc_attr__( 'Reply to this comment' ), __( 'Reply' ) );
+				$actions['reply'] = sprintf( $format, $comment->comment_ID, $post->ID, 'replyto', 'vim-r comment-inline', esc_attr__( 'Reply to this comment' ), __( 'Reply' ) );
 			}
 
 			/** This filter is documented in wp-admin/includes/dashboard.php */
@@ -525,14 +526,15 @@ class WP_Comments_List_Table extends WP_List_Table {
 				comment_author_email_link();
 				echo '<br />';
 			}
-			echo '<a href="edit-comments.php?s=';
-			comment_author_IP();
-			echo '&amp;mode=detail';
-			if ( 'spam' == $comment_status )
-				echo '&amp;comment_status=spam';
-			echo '">';
-			comment_author_IP();
-			echo '</a>';
+
+			$author_ip = get_comment_author_IP();
+			if ( $author_ip ) {
+				$author_ip_url = add_query_arg( array( 's' => $author_ip, 'mode' => 'detail' ), 'edit-comments.php' );
+				if ( 'spam' == $comment_status ) {
+					$author_ip_url = add_query_arg( 'comment_status', 'spam', $author_ip_url );
+				}
+				printf( '<a href="%s">%s</a>', esc_url( $author_ip_url ), $author_ip );
+			}
 		}
 	}
 

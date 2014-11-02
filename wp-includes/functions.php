@@ -100,7 +100,7 @@ function date_i18n( $dateformatstring, $unixtimestamp = false, $gmt = false ) {
 
 	/*
 	 * Store original value for language with untypical grammars.
-	 * See http://core.trac.wordpress.org/ticket/9396
+	 * See https://core.trac.wordpress.org/ticket/9396
 	 */
 	$req_format = $dateformatstring;
 
@@ -377,7 +377,7 @@ function maybe_serialize( $data ) {
 		return serialize( $data );
 
 	// Double serialization is required for backward compatibility.
-	// See http://core.trac.wordpress.org/ticket/12930
+	// See https://core.trac.wordpress.org/ticket/12930
 	if ( is_serialized( $data, false ) )
 		return serialize( $data );
 
@@ -457,23 +457,23 @@ function xmlrpc_removepostdata( $content ) {
  */
 function wp_extract_urls( $content ) {
 	preg_match_all(
-		"#("
+		"#([\"']?)("
 			. "(?:([\w-]+:)?//?)"
 			. "[^\s()<>]+"
 			. "[.]"
 			. "(?:"
 				. "\([\w\d]+\)|"
 				. "(?:"
-					. "[^`!()\[\]{};:'\".,<>?«»“”‘’\s]|"
+					. "[^`!()\[\]{};:'\".,<>«»“”‘’\s]|"
 					. "(?:[:]\d+)?/?"
 				. ")+"
 			. ")"
-		. ")#",
+		. ")\\1#",
 		$content,
 		$post_links
 	);
 
-	$post_links = array_unique( array_map( 'html_entity_decode', $post_links[0] ) );
+	$post_links = array_unique( array_map( 'html_entity_decode', $post_links[2] ) );
 
 	return array_values( $post_links );
 }
@@ -1087,7 +1087,7 @@ function cache_javascript_headers() {
  *
  * @since 2.0.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @return int Number of database queries.
  */
@@ -1253,7 +1253,7 @@ function do_robots() {
  *
  * @since 2.1.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @return bool Whether the blog is already installed.
  */
@@ -2016,7 +2016,7 @@ function wp_ext2type( $ext ) {
 		'image'       => array( 'jpg', 'jpeg', 'jpe',  'gif',  'png',  'bmp',   'tif',  'tiff', 'ico' ),
 		'audio'       => array( 'aac', 'ac3',  'aif',  'aiff', 'm3a',  'm4a',   'm4b',  'mka',  'mp1',  'mp2',  'mp3', 'ogg', 'oga', 'ram', 'wav', 'wma' ),
 		'video'       => array( '3g2',  '3gp', '3gpp', 'asf', 'avi',  'divx', 'dv',   'flv',  'm4v',   'mkv',  'mov',  'mp4',  'mpeg', 'mpg', 'mpv', 'ogm', 'ogv', 'qt',  'rm', 'vob', 'wmv' ),
-		'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt',  'pages', 'pdf',  'xps',  'oxps', 'rtf',  'wp',   'wpd' ),
+		'document'    => array( 'doc', 'docx', 'docm', 'dotm', 'odt',  'pages', 'pdf',  'xps',  'oxps', 'rtf',  'wp', 'wpd', 'psd' ),
 		'spreadsheet' => array( 'numbers',     'ods',  'xls',  'xlsx', 'xlsm',  'xlsb' ),
 		'interactive' => array( 'swf', 'key',  'ppt',  'pptx', 'pptm', 'pps',   'ppsx', 'ppsm', 'sldx', 'sldm', 'odp' ),
 		'text'        => array( 'asc', 'csv',  'tsv',  'txt' ),
@@ -2223,6 +2223,7 @@ function wp_get_mime_types() {
 	'rar' => 'application/rar',
 	'7z' => 'application/x-7z-compressed',
 	'exe' => 'application/x-msdownload',
+	'psd' => 'application/octet-stream',
 	// MS Office formats.
 	'doc' => 'application/msword',
 	'pot|pps|ppt' => 'application/vnd.ms-powerpoint',
@@ -2272,8 +2273,6 @@ function wp_get_mime_types() {
  * Retrieve list of allowed mime types and file extensions.
  *
  * @since 2.8.6
- *
- * @uses wp_get_upload_mime_types() to fetch the list of mime types
  *
  * @param int|WP_User $user Optional. User to check. Defaults to current user.
  * @return array Array of mime types keyed by the file extension regex corresponding
@@ -2612,6 +2611,139 @@ function _scalar_wp_die_handler( $message = '' ) {
 }
 
 /**
+ * Encode a variable into JSON, with some sanity checks.
+ *
+ * @since 4.1.0
+ *
+ * @param mixed $data    Variable (usually an array or object) to encode as JSON.
+ * @param int   $options Options to be passed to json_encode(). Default 0.
+ * @param int   $depth   Maximum depth to walk through $data. Must be greater than 0, default 512.
+ * @return bool|string The JSON encoded string, or false if it cannot be encoded.
+ */
+function wp_json_encode( $data, $options = 0, $depth = 512 ) {
+	/*
+	 * json_encode() has had extra params added over the years.
+	 * $options was added in 5.3, and $depth in 5.5.
+	 * We need to make sure we call it with the correct arguments.
+	 */
+	if ( version_compare( PHP_VERSION, '5.5', '>=' ) ) {
+		$args = array( $data, $options, $depth );
+	} elseif ( version_compare( PHP_VERSION, '5.3', '>=' ) ) {
+		$args = array( $data, $options );
+	} else {
+		$args = array( $data );
+	}
+
+	$json = call_user_func_array( 'json_encode', $args );
+
+	// If json_encode() was successful, no need to do more sanity checking.
+	if ( false !== $json ) {
+		return $json;
+	}
+
+	try {
+		$args[0] = _wp_json_sanity_check( $data, $depth );
+	} catch ( Exception $e ) {
+		return false;
+	}
+
+	return call_user_func_array( 'json_encode', $args );
+}
+
+/**
+ * Perform sanity checks on data that shall be encoded to JSON.
+ *
+ * @see wp_json_encode()
+ *
+ * @since 4.1.0
+ * @access private
+ * @internal
+ *
+ * @param mixed $data  Variable (usually an array or object) to encode as JSON.
+ * @param int   $depth Maximum depth to walk through $data. Must be greater than 0.
+ * @return mixed The sanitized data that shall be encoded to JSON.
+ */
+function _wp_json_sanity_check( $data, $depth ) {
+	if ( $depth < 0 ) {
+		throw new Exception( 'Reached depth limit' );
+	}
+
+	if ( is_array( $data ) ) {
+		$output = array();
+		foreach ( $data as $id => $el ) {
+			// Don't forget to sanitize the ID!
+			if ( is_string( $id ) ) {
+				$clean_id = _wp_json_convert_string( $id );
+			} else {
+				$clean_id = $id;
+			}
+
+			// Check the element type, so that we're only recursing if we really have to.
+			if ( is_array( $el ) || is_object( $el ) ) {
+				$output[ $clean_id ] = _wp_json_sanity_check( $el, $depth - 1 );
+			} elseif ( is_string( $el ) ) {
+				$output[ $clean_id ] = _wp_json_convert_string( $el );
+			} else {
+				$output[ $clean_id ] = $el;
+			}
+		}
+	} elseif ( is_object( $data ) ) {
+		$output = new stdClass;
+		foreach ( $data as $id => $el ) {
+			if ( is_string( $id ) ) {
+				$clean_id = _wp_json_convert_string( $id );
+			} else {
+				$clean_id = $id;
+			}
+
+			if ( is_array( $el ) || is_object( $el ) ) {
+				$output->$clean_id = _wp_json_sanity_check( $el, $depth - 1 );
+			} elseif ( is_string( $el ) ) {
+				$output->$clean_id = _wp_json_convert_string( $el );
+			} else {
+				$output->$clean_id = $el;
+			}
+		}
+	} elseif ( is_string( $data ) ) {
+		return _wp_json_convert_string( $data );
+	} else {
+		return $data;
+	}
+
+	return $output;
+}
+
+/**
+ * Convert a string to UTF-8, so that it can be safely encoded to JSON.
+ *
+ * @see _wp_json_sanity_check()
+ *
+ * @since 4.1.0
+ * @access private
+ * @internal
+ *
+ * @param string $string The string which is to be converted.
+ * @return string The checked string.
+ */
+function _wp_json_convert_string( $string ) {
+	static $use_mb = null;
+	if ( is_null( $use_mb ) ) {
+		$use_mb = function_exists( 'mb_convert_encoding' );
+	}
+
+	if ( $use_mb ) {
+		$encoding = mb_detect_encoding( $string, mb_detect_order(), true );
+		if ( $encoding ) {
+			return mb_convert_encoding( $string, 'UTF-8', $encoding );
+		} else {
+			return mb_convert_encoding( $string, 'UTF-8', 'UTF-8' );
+		}
+	} else {
+		return wp_check_invalid_utf8( $data, true );
+	}
+}
+
+/**
  * Send a JSON response back to an Ajax request.
  *
  * @since 3.5.0
@@ -2621,7 +2753,7 @@ function _scalar_wp_die_handler( $message = '' ) {
  */
 function wp_send_json( $response ) {
 	@header( 'Content-Type: application/json; charset=' . get_option( 'blog_charset' ) );
-	echo json_encode( $response );
+	echo wp_json_encode( $response );
 	if ( defined( 'DOING_AJAX' ) && DOING_AJAX )
 		wp_die();
 	else
@@ -3066,8 +3198,6 @@ function wp_maybe_load_widgets() {
  * Append the Widgets menu to the themes main menu.
  *
  * @since 2.2.0
- *
- * @uses $submenu The administration submenu list.
  */
 function wp_widgets_add_menu() {
 	global $submenu;
@@ -3108,7 +3238,7 @@ function wp_ob_end_flush_all() {
  *
  * @since 2.3.2
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function dead_db() {
 	global $wpdb;
@@ -3926,7 +4056,7 @@ function wp_timezone_choice( $selected_zone ) {
  * @since 2.8.0
  * @access private
  *
- * @see http://core.trac.wordpress.org/ticket/8497
+ * @see https://core.trac.wordpress.org/ticket/8497
  *
  * @param string $str Header comment to clean up.
  * @return string
@@ -4275,7 +4405,7 @@ function wp_allowed_protocols() {
  *
  * @since 3.4.0
  *
- * @see http://core.trac.wordpress.org/ticket/19589
+ * @see https://core.trac.wordpress.org/ticket/19589
  *
  * @param string $ignore_class Optional. A class to ignore all function calls within - useful
  *                             when you want to just give info about the callee. Default null.
@@ -4536,7 +4666,7 @@ function get_tag_regex( $tag ) {
  * @since 3.6.0
  * @access private
  *
- * @see http://core.trac.wordpress.org/ticket/23688
+ * @see https://core.trac.wordpress.org/ticket/23688
  *
  * @param string $charset A charset name.
  * @return string The canonical form of the charset.

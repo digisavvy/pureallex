@@ -15,7 +15,7 @@ class WP_Embed {
 	/**
 	 * When an URL cannot be embedded, return false instead of returning a link
 	 * or the URL. Bypasses the 'embed_maybe_make_link' filter.
-	 */	 	 	
+	 */
 	public $return_false_on_fail = false;
 
 	/**
@@ -43,9 +43,6 @@ class WP_Embed {
 	 * calls {@link do_shortcode()}, and then re-registers the old shortcodes.
 	 *
 	 * @uses $shortcode_tags
-	 * @uses remove_all_shortcodes()
-	 * @uses add_shortcode()
-	 * @uses do_shortcode()
 	 *
 	 * @param string $content Content to parse
 	 * @return string Content with shortcode parsed
@@ -122,17 +119,6 @@ class WP_Embed {
 	 * Attempts to convert a URL into embed HTML. Starts by checking the URL against the regex of the registered embed handlers.
 	 * If none of the regex matches and it's enabled, then the URL will be given to the {@link WP_oEmbed} class.
 	 *
-	 * @uses wp_oembed_get()
-	 * @uses wp_parse_args()
-	 * @uses wp_embed_defaults()
-	 * @uses WP_Embed::maybe_make_link()
-	 * @uses get_option()
-	 * @uses author_can()
-	 * @uses wp_cache_get()
-	 * @uses wp_cache_set()
-	 * @uses get_post_meta()
-	 * @uses update_post_meta()
-	 *
 	 * @param array $attr {
 	 *     Shortcode attributes. Optional.
 	 *
@@ -156,7 +142,7 @@ class WP_Embed {
 		$attr = wp_parse_args( $attr, wp_embed_defaults( $url ) );
 
 		// kses converts & into &amp; and we need to undo this
-		// See http://core.trac.wordpress.org/ticket/11311
+		// See https://core.trac.wordpress.org/ticket/11311
 		$url = str_replace( '&amp;', '&', $url );
 
 		// Look for known internal handlers
@@ -331,8 +317,6 @@ class WP_Embed {
 
 	/**
 	 * Callback function for {@link WP_Embed::autoembed()}.
-	 *
-	 * @uses WP_Embed::shortcode()
 	 *
 	 * @param array $match A regex match array.
 	 * @return string The embed HTML on success, otherwise the original URL.

@@ -27,6 +27,19 @@ function options_general_add_js() {
 <script type="text/javascript">
 //<![CDATA[
 	jQuery(document).ready(function($){
+		var $siteName = $( '#wp-admin-bar-site-name' ).children( 'a' ).first();
+
+		$( '#blogname' ).on( 'input', function() {
+			var title = $( this ).val();
+
+			// Truncate to 40 characters.
+			if ( 40 < title.length ) {
+				title = title.substring( 0, 40 ) + '\u2026';
+			}
+
+			$siteName.text( title );
+		});
+
 		$("input[name='date_format']").click(function(){
 			if ( "date_format_custom_radio" != $(this).attr("id") )
 				$("input[name='date_format_custom']").val( $(this).val() ).siblings('.example').text( $(this).siblings('span').text() );
@@ -305,7 +318,10 @@ endfor;
 
 <?php
 $languages = get_available_languages();
-if ( ! empty( $languages ) ) {
+if ( ! is_multisite() && defined( 'WPLANG' ) && '' !== WPLANG && 'en_US' !== WPLANG && ! in_array( WPLANG, $languages ) ) {
+	$languages[] = WPLANG;
+}
+if ( $languages ) {
 	?>
 	<tr>
 		<th width="33%" scope="row"><label for="WPLANG"><?php _e( 'Site Language' ); ?></label></th>

@@ -25,7 +25,6 @@
  * height as the second element.
  *
  * @since 2.5.0
- * @uses wp_constrain_dimensions() This function passes the widths and the heights.
  *
  * @param int $width Width of the image
  * @param int $height Height of the image
@@ -684,12 +683,11 @@ function wp_get_attachment_image_src($attachment_id, $size='thumbnail', $icon = 
  * @since 2.5.0
  *
  * @see add_image_size()
- * @uses wp_get_attachment_image_src() Gets attachment file URL and dimensions
  *
- * @param int $attachment_id Image attachment ID.
- * @param string $size Optional, default is 'thumbnail'.
- * @param bool $icon Optional, default is false. Whether it is an icon.
- * @param mixed $attr Optional, attributes for the image markup.
+ * @param int          $attachment_id Image attachment ID.
+ * @param string|array $size          Optional. Default 'thumbnail'.
+ * @param bool         $icon          Optional. Whether it is an icon. Default false.
+ * @param string|array $attr          Optional. Attributes for the image markup. Default empty string.
  * @return string HTML img element or empty string on failure.
  */
 function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = false, $attr = '') {
@@ -699,12 +697,14 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 	if ( $image ) {
 		list($src, $width, $height) = $image;
 		$hwstring = image_hwstring($width, $height);
-		if ( is_array($size) )
-			$size = join('x', $size);
+		$size_class = $size;
+		if ( is_array( $size_class ) ) {
+			$size_class = join( 'x', $size_class );
+		}
 		$attachment = get_post($attachment_id);
 		$default_attr = array(
 			'src'	=> $src,
-			'class'	=> "attachment-$size",
+			'class'	=> "attachment-$size_class",
 			'alt'	=> trim(strip_tags( get_post_meta($attachment_id, '_wp_attachment_image_alt', true) )), // Use Alt field first
 		);
 		if ( empty($default_attr['alt']) )
@@ -719,10 +719,11 @@ function wp_get_attachment_image($attachment_id, $size = 'thumbnail', $icon = fa
 		 *
 		 * @since 2.8.0
 		 *
-		 * @param mixed $attr          Attributes for the image markup.
-		 * @param int   $attachment_id Image attachment ID.
+		 * @param array        $attr       Attributes for the image markup.
+		 * @param WP_Post      $attachment Image attachment post.
+		 * @param string|array $size       Requested size.
 		 */
-		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment );
+		$attr = apply_filters( 'wp_get_attachment_image_attributes', $attr, $attachment, $size );
 		$attr = array_map( 'esc_attr', $attr );
 		$html = rtrim("<img $hwstring");
 		foreach ( $attr as $name => $value ) {
@@ -935,14 +936,6 @@ function gallery_shortcode( $attr ) {
 		return $output;
 	}
 
-	// We're trusting author input, so let's at least make sure it looks like a valid orderby statement
-	if ( isset( $attr['orderby'] ) ) {
-		$attr['orderby'] = sanitize_sql_orderby( $attr['orderby'] );
-		if ( ! $attr['orderby'] ) {
-			unset( $attr['orderby'] );
-		}
-	}
-
 	$html5 = current_theme_supports( 'html5', 'gallery' );
 	$atts = shortcode_atts( array(
 		'order'      => 'ASC',
@@ -959,9 +952,6 @@ function gallery_shortcode( $attr ) {
 	), $attr, 'gallery' );
 
 	$id = intval( $atts['id'] );
-	if ( 'RAND' == $atts['order'] ) {
-		$atts['orderby'] = 'none';
-	}
 
 	if ( ! empty( $atts['include'] ) ) {
 		$_attachments = get_posts( array( 'include' => $atts['include'], 'post_status' => 'inherit', 'post_type' => 'attachment', 'post_mime_type' => 'image', 'order' => $atts['order'], 'orderby' => $atts['orderby'] ) );
@@ -1056,12 +1046,14 @@ function gallery_shortcode( $attr ) {
 
 	$i = 0;
 	foreach ( $attachments as $id => $attachment ) {
+
+		$attr = ( trim( $attachment->post_excerpt ) ) ? array( 'aria-describedby' => "$selector-$id" ) : '';
 		if ( ! empty( $atts['link'] ) && 'file' === $atts['link'] ) {
-			$image_output = wp_get_attachment_link( $id, $atts['size'], false, false );
+			$image_output = wp_get_attachment_link( $id, $atts['size'], false, false, $attr );
 		} elseif ( ! empty( $atts['link'] ) && 'none' === $atts['link'] ) {
-			$image_output = wp_get_attachment_image( $id, $atts['size'], false );
+			$image_output = wp_get_attachment_image( $id, $atts['size'], false, $attr );
 		} else {
-			$image_output = wp_get_attachment_link( $id, $atts['size'], true, false );
+			$image_output = wp_get_attachment_link( $id, $atts['size'], true, false, false, $attr );
 		}
 		$image_meta  = wp_get_attachment_metadata( $id );
 
@@ -1076,7 +1068,7 @@ function gallery_shortcode( $attr ) {
 			</{$icontag}>";
 		if ( $captiontag && trim($attachment->post_excerpt) ) {
 			$output .= "
-				<{$captiontag} class='wp-caption-text gallery-caption'>
+				<{$captiontag} class='wp-caption-text gallery-caption' id='$selector-$id'>
 				" . wptexturize($attachment->post_excerpt) . "
 				</{$captiontag}>";
 		}
@@ -1166,7 +1158,7 @@ add_action( 'wp_playlist_scripts', 'wp_playlist_scripts' );
  *
  *     @type string  $type         Type of playlist to display. Accepts 'audio' or 'video'. Default 'audio'.
  *     @type string  $order        Designates ascending or descending order of items in the playlist.
- *                                 Accepts 'ASC', 'DESC', or 'RAND'. Default 'ASC'.
+ *                                 Accepts 'ASC', 'DESC'. Default 'ASC'.
  *     @type string  $orderby      Any column, or columns, to sort the playlist. If $ids are
  *                                 passed, this defaults to the order of the $ids array ('post__in').
  *                                 Otherwise default is 'menu_order ID'.
@@ -1218,16 +1210,6 @@ function wp_playlist_shortcode( $attr ) {
 		return $output;
 	}
 
-	/*
-	 * We're trusting author input, so let's at least make sure it looks
-	 * like a valid orderby statement.
-	 */
-	if ( isset( $attr['orderby'] ) ) {
-		$attr['orderby'] = sanitize_sql_orderby( $attr['orderby'] );
-		if ( ! $attr['orderby'] )
-			unset( $attr['orderby'] );
-	}
-
 	$atts = shortcode_atts( array(
 		'type'		=> 'audio',
 		'order'		=> 'ASC',
@@ -1243,9 +1225,6 @@ function wp_playlist_shortcode( $attr ) {
 	), $attr, 'playlist' );
 
 	$id = intval( $atts['id'] );
-	if ( 'RAND' == $atts['order'] ) {
-		$atts['orderby'] = 'none';
-	}
 
 	$args = array(
 		'post_status' => 'inherit',
@@ -1399,7 +1378,7 @@ function wp_playlist_shortcode( $attr ) {
 	}
 	?></ol>
 	</noscript>
-	<script type="application/json"><?php echo json_encode( $data ) ?></script>
+	<script type="application/json" class="wp-playlist-script"><?php echo wp_json_encode( $data ) ?></script>
 </div>
 	<?php
 	return ob_get_clean();
@@ -1874,14 +1853,11 @@ function wp_video_shortcode( $attr, $content = '' ) {
 	}
 	$html .= '</video>';
 
-	$width_rule = $height_rule = '';
+	$width_rule = '';
 	if ( ! empty( $atts['width'] ) ) {
 		$width_rule = sprintf( 'width: %dpx; ', $atts['width'] );
 	}
-	if ( ! empty( $atts['height'] ) ) {
-		$height_rule = sprintf( 'height: %dpx; ', $atts['height'] );
-	}
-	$output = sprintf( '<div style="%s%s" class="wp-video">%s</div>', $width_rule, $height_rule, $html );
+	$output = sprintf( '<div style="%s" class="wp-video">%s</div>', $width_rule, $html );
 
 	/**
 	 * Filter the output of the video shortcode.
@@ -2017,7 +1993,6 @@ function get_attachment_taxonomies($attachment) {
  *
  * @since 3.5.0
  * @see get_attachment_taxonomies()
- * @uses get_taxonomies()
  *
  * @param string $output The type of output to return, either taxonomy 'names' or 'objects'. 'names' is the default.
  * @return array The names of all taxonomy of $object_type.
@@ -2121,7 +2096,6 @@ function wp_embed_defaults( $url = '' ) {
  * Based on a supplied width/height example, return the biggest possible dimensions based on the max width/height.
  *
  * @since 2.9.0
- * @uses wp_constrain_dimensions() This function passes the widths and the heights.
  *
  * @param int $example_width The width of an example embed.
  * @param int $example_height The height of an example embed.
@@ -2144,9 +2118,6 @@ function wp_expand_dimensions( $example_width, $example_height, $max_width, $max
  * @since 2.9.0
  * @see WP_oEmbed
  *
- * @uses _wp_oembed_get_object()
- * @uses WP_oEmbed::get_html()
- *
  * @param string $url The URL that should be embedded.
  * @param array $args Additional arguments and parameters.
  * @return bool|string False on failure or the embed HTML on success.
@@ -2162,8 +2133,6 @@ function wp_oembed_get( $url, $args = '' ) {
  *
  * @since 2.9.0
  * @see WP_oEmbed
- *
- * @uses _wp_oembed_get_object()
  *
  * @param string $format The format of URL that this provider can handle. You can use asterisks as wildcards.
  * @param string $provider The URL to the oEmbed provider.
@@ -2185,8 +2154,6 @@ function wp_oembed_add_provider( $format, $provider, $regex = false ) {
  *
  * @since 3.5.0
  * @see WP_oEmbed
- *
- * @uses _wp_oembed_get_object()
  *
  * @param string $format The URL format for the oEmbed provider to remove.
  */
@@ -2542,6 +2509,14 @@ function wp_plupload_default_settings() {
 		),
 	);
 
+	// Currently only iOS Safari supports multiple files uploading but iOS 7.x has a bug that prevents uploading of videos
+	// when enabled. See #29602.
+	if ( wp_is_mobile() && strpos( $_SERVER['HTTP_USER_AGENT'], 'OS 7_' ) !== false &&
+		strpos( $_SERVER['HTTP_USER_AGENT'], 'like Mac OS X' ) !== false ) {
+
+		$defaults['multi_selection'] = false;
+	}
+
 	/**
 	 * Filter the Plupload default settings.
 	 *
@@ -2575,7 +2550,7 @@ function wp_plupload_default_settings() {
 		'limitExceeded' => is_multisite() && ! is_upload_space_available()
 	);
 
-	$script = 'var _wpPluploadSettings = ' . json_encode( $settings ) . ';';
+	$script = 'var _wpPluploadSettings = ' . wp_json_encode( $settings ) . ';';
 
 	if ( $data )
 		$script = "$data\n$script";
@@ -2643,6 +2618,11 @@ function wp_prepare_attachment_for_js( $attachment ) {
 
 	if ( $attachment->post_parent ) {
 		$post_parent = get_post( $attachment->post_parent );
+	} else {
+		$post_parent = false;
+	}
+
+	if ( $post_parent ) {
 		$parent_type = get_post_type_object( $post_parent->post_type );
 		if ( $parent_type && $parent_type->show_ui && current_user_can( 'edit_post', $attachment->post_parent ) ) {
 			$response['uploadedToLink'] = get_edit_post_link( $attachment->post_parent, 'raw' );
@@ -2932,7 +2912,7 @@ function wp_enqueue_media( $args = array() ) {
 		'noItemsFound'           => __( 'No items found.' ),
 		'insertIntoPost'         => $hier ? __( 'Insert into page' ) : __( 'Insert into post' ),
 		'unattached'             => __( 'Unattached' ),
-		'trash'                  => __( 'Trash' ),
+		'trash'                  => _x( 'Trash', 'noun' ),
 		'uploadedToThisPost'     => $hier ? __( 'Uploaded to this page' ) : __( 'Uploaded to this post' ),
 		'warnDelete'             => __( "You are about to permanently delete this item.\n  'Cancel' to stop, 'OK' to delete." ),
 		'warnBulkDelete'         => __( "You are about to permanently delete these items.\n  'Cancel' to stop, 'OK' to delete." ),
@@ -3020,7 +3000,7 @@ function wp_enqueue_media( $args = array() ) {
 
  		// Media Library
  		'editMetadata' => __( 'Edit Metadata' ),
- 		'noMedia'      => __( 'No media found. Try a different search.' ),
+ 		'noMedia'      => __( 'No media attachments found.' ),
 	);
 
 	/**
@@ -3045,9 +3025,11 @@ function wp_enqueue_media( $args = array() ) {
 
 	$strings['settings'] = $settings;
 
+	// Ensure we enqueue media-editor first, that way media-views is
+	// registered internally before we try to localize it. see #24724.
+	wp_enqueue_script( 'media-editor' );
 	wp_localize_script( 'media-views', '_wpMediaViewsL10n', $strings );
 
-	wp_enqueue_script( 'media-editor' );
 	wp_enqueue_script( 'media-audiovideo' );
 	wp_enqueue_style( 'media-views' );
 	if ( is_admin() ) {
@@ -3278,7 +3260,7 @@ function wp_maybe_generate_attachment_metadata( $attachment ) {
  *
  * @since 4.0.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string $url The URL to resolve.
  * @return int The found post ID.

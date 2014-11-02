@@ -95,7 +95,7 @@ class Walker_Nav_Menu extends Walker {
 		 * @param object $item    The current menu item.
 		 * @param array  $args    An array of wp_nav_menu() arguments.
 		 */
-		$class_names = join( ' ', apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
+		$class_names = join( ' ', (array) apply_filters( 'nav_menu_css_class', array_filter( $classes ), $item, $args ) );
 		$class_names = $class_names ? ' class="' . esc_attr( $class_names ) . '"' : '';
 
 		/**
@@ -277,7 +277,7 @@ function wp_nav_menu( $args = array() ) {
 
 	// get the first menu that has items if we still can't find a menu
 	if ( ! $menu && !$args->theme_location ) {
-		$menus = wp_get_nav_menus( array( 'orderby' => 'name' ) );
+		$menus = wp_get_nav_menus();
 		foreach ( $menus as $menu_maybe ) {
 			if ( $menu_items = wp_get_nav_menu_items( $menu_maybe->term_id, array( 'update_post_term_cache' => false ) ) ) {
 				$menu = $menu_maybe;

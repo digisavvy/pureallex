@@ -1,0 +1,37 @@
+div#group1 {
+	color: #fff;
+
+	.parallax__layer--fore {
+
+	}
+	.buttonz {
+		@include neat-3d-buttons;
+		color: #000;
+	}
+}
+
+div#group2 {
+	@include fill-parent;
+	height: 60vh;
+
+	.parallax__layer.parallax__layer--base {
+		background: #fff;
+	}
+
+	.image {
+		background-color: #fff;
+		@include background-image( url("../img/split-left.jpg") );
+		background-size: cover;
+		@include span-columns( 5 );
+		@include omega( block );
+		min-height: 100vh;
+		background-position: 0px -331px;
+	}
+
+	.text {
+		background: #fff;
+		height: 100vh;
+		padding: 50px;
+		@include span-columns( 7 );
+	}
+}

@@ -567,7 +567,7 @@ class wpdb {
 	 * the actual setting up of the class properties and connection
 	 * to the database.
 	 *
-	 * @link http://core.trac.wordpress.org/ticket/3354
+	 * @link https://core.trac.wordpress.org/ticket/3354
 	 * @since 2.0.8
 	 *
 	 * @param string $dbuser MySQL database user
@@ -867,7 +867,6 @@ class wpdb {
 	/**
 	 * Gets blog prefix.
 	 *
-	 * @uses is_multisite()
 	 * @since 3.0.0
 	 * @param int $blog_id Optional.
 	 * @return string Blog prefix.
@@ -906,7 +905,6 @@ class wpdb {
 	 * @uses wpdb::$old_tables
 	 * @uses wpdb::$global_tables
 	 * @uses wpdb::$ms_global_tables
-	 * @uses is_multisite()
 	 *
 	 * @param string $scope Optional. Can be all, global, ms_global, blog, or old tables. Defaults to all.
 	 * @param bool $prefix Optional. Whether to include table prefixes. Default true. If blog
@@ -1042,7 +1040,11 @@ class wpdb {
 		}
 
 		$class = get_class( $this );
-		_doing_it_wrong( $class, "$class must set a database connection for use with escaping.", E_USER_NOTICE );
+		if ( function_exists( '__' ) ) {
+			_doing_it_wrong( $class, sprintf( __( '%s must set a database connection for use with escaping.' ), $class ), E_USER_NOTICE );
+		} else {
+			_doing_it_wrong( $class, sprintf( '%s must set a database connection for use with escaping.', $class ), E_USER_NOTICE );
+		}
 		return addslashes( $string );
 	}
 
@@ -1793,9 +1795,7 @@ class wpdb {
 			$wheres[] = "`$field` = {$form}";
 		}
 
-		$wheres = empty( $where ) ? '' : ( ' WHERE ' . implode( ' AND ', $wheres ) );
-
-		$sql = "UPDATE `$table` SET " . implode( ', ', $bits ) . $wheres;
+		$sql = "UPDATE `$table` SET " . implode( ', ', $bits ) . ' WHERE ' . implode( ' AND ', $wheres );
 		return $this->query( $this->prepare( $sql, array_merge( array_values( $data ), array_values( $where ) ) ) );
 	}
 
@@ -2151,7 +2151,7 @@ class wpdb {
 				return version_compare( $version, '4.1', '>=' );
 			case 'set_charset' :
 				return version_compare( $version, '5.0.7', '>=' );
-		};
+		}
 
 		return false;
 	}

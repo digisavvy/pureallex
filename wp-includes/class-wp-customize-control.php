@@ -74,6 +74,7 @@ class WP_Customize_Control {
 	public $input_attrs = array();
 
 	/**
+	 * @deprecated It is better to just call the json() method
 	 * @access public
 	 * @var array
 	 */
@@ -152,7 +153,7 @@ class WP_Customize_Control {
 	public function enqueue() {}
 
 	/**
-	 * Check whether control is active to current customizer preview.
+	 * Check whether control is active to current Customizer preview.
 	 *
 	 * @since 4.0.0
 	 * @access public
@@ -217,8 +218,25 @@ class WP_Customize_Control {
 			$this->json['settings'][ $key ] = $setting->id;
 		}
 
-		$this->json['type'] = $this->type;
-		$this->json['active'] = $this->active();
+		$this->json['type']        = $this->type;
+		$this->json['priority']    = $this->priority;
+		$this->json['active']      = $this->active();
+		$this->json['section']     = $this->section;
+		$this->json['content']     = $this->get_content();
+		$this->json['label']       = $this->label;
+		$this->json['description'] = $this->description;
+	}
+
+	/**
+	 * Get the data to export to the client via JSON.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return array
+	 */
+	public function json() {
+		$this->to_json();
+		return $this->json;
 	}
 
 	/**
@@ -239,6 +257,21 @@ class WP_Customize_Control {
 			return false;
 
 		return true;
+	}
+
+	/**
+	 * Get the control's content for insertion into the Customizer pane.
+	 *
+	 * @since 4.1.0
+	 *
+	 * @return string
+	 */
+	public final function get_content() {
+		ob_start();
+		$this->maybe_render();
+		$template = trim( ob_get_contents() );
+		ob_end_clean();
+		return $template;
 	}
 
 	/**
@@ -335,6 +368,8 @@ class WP_Customize_Control {
 	 *
 	 * Supports basic input types `text`, `checkbox`, `textarea`, `radio`, `select` and `dropdown-pages`.
 	 * Additional input types such as `email`, `url`, `number`, `hidden` and `date` are supported implicitly.
+	 *
+	 * Control content can alternately be rendered in JS. See {@see WP_Customize_Control::print_template()}.
 	 *
 	 * @since 3.4.0
 	 */
@@ -443,6 +478,36 @@ class WP_Customize_Control {
 				break;
 		}
 	}
+
+	/**
+	 * Render the control's JS template.
+	 *
+	 * This function is only run for control types that have been registered with {@see WP_Customize_Manager::register_control_type()}.
+	 *
+	 * In the future, this will also print the template for the control's container element and be overridable.
+	 *
+	 * @since 4.1.0
+	 */
+	final public function print_template() {
+	        ?>
+	        <script type="text/html" id="tmpl-customize-control-<?php echo $this->type; ?>-content">
+	                <?php $this->content_template(); ?>
+	        </script>
+	        <?php
+	}
+
+	/**
+	 * An Underscore (JS) template for this control's content (but not its container).
+	 *
+	 * Class variables for this control class are available in the `data` JS object;
+	 * export custom variables by overriding {@see WP_Customize_Control::to_json()}.
+	 *
+	 * @see WP_Customize_Control::print_template()
+	 *
+	 * @since 4.1.0
+	 */
+	protected function content_template() {}
+
 }
 
 /**
@@ -499,33 +564,41 @@ class WP_Customize_Color_Control extends WP_Customize_Control {
 	public function to_json() {
 		parent::to_json();
 		$this->json['statuses'] = $this->statuses;
+		$this->json['defaultValue'] = $this->setting->default;
 	}
 
 	/**
-	 * Render the control's content.
+	 * Don't render the control content from PHP, as it's rendered via JS on load.
 	 *
 	 * @since 3.4.0
 	 */
-	public function render_content() {
-		$this_default = $this->setting->default;
-		$default_attr = '';
-		if ( $this_default ) {
-			if ( false === strpos( $this_default, '#' ) )
-				$this_default = '#' . $this_default;
-			$default_attr = ' data-default-color="' . esc_attr( $this_default ) . '"';
-		}
-		// The input's value gets set by JS. Don't fill it.
-		?>
-		<label>
-			<?php if ( ! empty( $this->label ) ) : ?>
-				<span class="customize-control-title"><?php echo esc_html( $this->label ); ?></span>
-			<?php endif;
-			if ( ! empty( $this->description ) ) : ?>
-				<span class="description customize-control-description"><?php echo $this->description; ?></span>
-			<?php endif; ?>
+	public function render_content() {}
 
+	/**
+	 * Render a JS template for the content of the color picker control.
+	 *
+	 * @since 4.1.0
+	 */
+	public function content_template() {
+		?>
+		<# var defaultValue = '';
+		if ( data.defaultValue ) {
+			if ( '#' !== data.defaultValue.substring( 0, 1 ) ) {
+				defaultValue = '#' + data.defaultValue;
+			} else {
+				defaultValue = data.defaultValue;
+			}
+			defaultValue = ' data-default-color=' + defaultValue; // Quotes added automatically.
+		} #>
+		<label>
+			<# if ( data.label ) { #>
+				<span class="customize-control-title">{{ data.label }}</span>
+			<# } #>
+			<# if ( data.description ) { #>
+				<span class="description customize-control-description">{{ data.description }}</span>
+			<# } #>
 			<div class="customize-control-content">
-				<input class="color-picker-hex" type="text" maxlength="7" placeholder="<?php esc_attr_e( 'Hex Value' ); ?>"<?php echo $default_attr; ?> />
+				<input class="color-picker-hex" type="text" maxlength="7" placeholder="<?php esc_attr_e( 'Hex Value' ); ?>" {{ defaultValue }} />
 			</div>
 		</label>
 		<?php
@@ -742,7 +815,7 @@ class WP_Customize_Image_Control extends WP_Customize_Upload_Control {
 	 */
 	public function tab_upload_new() {
 		if ( ! _device_can_upload() ) {
-			echo '<p>' . sprintf( __('The web browser on your device cannot be used to upload files. You may be able to use the <a href="%s">native app for your device</a> instead.'), 'https://wordpress.org/mobile/' ) . '</p>';
+			echo '<p>' . sprintf( __('The web browser on your device cannot be used to upload files. You may be able to use the <a href="%s">native app for your device</a> instead.'), 'https://apps.wordpress.org/' ) . '</p>';
 		} else {
 			?>
 			<div class="upload-dropzone">
@@ -1031,6 +1104,7 @@ class WP_Customize_Header_Image_Control extends WP_Customize_Image_Control {
 /**
  * Widget Area Customize Control Class
  *
+ * @since 3.9.0
  */
 class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 	public $type = 'sidebar_widgets';
@@ -1072,6 +1146,8 @@ class WP_Widget_Area_Customize_Control extends WP_Customize_Control {
 
 /**
  * Widget Form Customize Control Class
+ *
+ * @since 3.9.0
  */
 class WP_Widget_Form_Customize_Control extends WP_Customize_Control {
 	public $type = 'widget_form';

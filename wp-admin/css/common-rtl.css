@@ -1967,6 +1967,8 @@ td.media-icon {
 td.media-icon img {
 	max-width: 80px;
 	max-height: 60px;
+	width: auto;
+	height: auto;
 }
 
 td.image-icon img {
@@ -2750,7 +2752,7 @@ img {
 	margin: 4px 0;
 }
 
-#templateside a,
+#templateside li a,
 .theme-editor-php .highlight {
 	display: block;
 	padding: 3px 12px 3px 3px;
@@ -2826,7 +2828,12 @@ img {
 }
 
 .widget-top a.widget-action:after {
-	padding: 12px 12px 0;
+	padding: 12px 12px 11px;
+}
+
+.widget-top a.widget-action:focus:after {
+	-webkit-box-shadow: 0 0 0 1px #5b9dd9,0 0 2px 1px rgba(30,140,190,.8);
+	box-shadow: 0 0 0 1px #5b9dd9,0 0 2px 1px rgba(30,140,190,.8);
 }
 
 .nav-menus-php .item-edit:before {

@@ -4,7 +4,7 @@
  *
  * Will eventually replace and standardize the WordPress HTTP requests made.
  *
- * @link http://trac.wordpress.org/ticket/4779 HTTP API Proposal
+ * @link https://core.trac.wordpress.org/ticket/4779 HTTP API Proposal
  *
  * @package WordPress
  * @subpackage HTTP
@@ -246,7 +246,7 @@ function wp_remote_retrieve_header( $response, $header ) {
  * @since 2.7.0
  *
  * @param array $response HTTP response.
- * @return string the response code. Empty string on incorrect parameter given.
+ * @return int|string The response code as an integer. Empty string on incorrect parameter given.
  */
 function wp_remote_retrieve_response_code( $response ) {
 	if ( is_wp_error($response) || ! isset($response['response']) || ! is_array($response['response']))

@@ -179,7 +179,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		$this->items = $api->plugins;
 
 		if ( $this->orderby ) {
-			uasort( $this->items, array( $this, '_order_callback' ) );
+			uasort( $this->items, array( $this, 'order_callback' ) );
 		}
 
 		$this->set_pagination_args( array(
@@ -273,7 +273,9 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 			return;
 		}
 
-		if ( 'top' ==  $which ) { ?>
+		if ( 'top' ==  $which ) {
+			wp_referer_field();
+		?>
 			<div class="tablenav top">
 				<div class="alignleft actions">
 					<?php
@@ -304,7 +306,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		return array();
 	}
 
-	public function _order_callback( $plugin_a, $plugin_b ) {
+	private function order_callback( $plugin_a, $plugin_b ) {
 		$orderby = $this->orderby;
 		if ( ! isset( $plugin_a->$orderby, $plugin_b->$orderby ) ) {
 			return 0;
@@ -435,16 +437,16 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 		?>
 		<div class="plugin-card">
 			<div class="plugin-card-top">
-				<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox"><img src="<?php echo esc_attr( $plugin_icon_url ) ?>" class="plugin-icon" /></a>
+				<a href="<?php echo esc_url( $details_link ); ?>" class="thickbox plugin-icon"><img src="<?php echo esc_attr( $plugin_icon_url ) ?>" /></a>
+				<div class="name column-name">
+					<h4><a href="<?php echo esc_url( $details_link ); ?>" class="thickbox"><?php echo $title; ?></a></h4>
+				</div>
 				<div class="action-links">
 					<?php
 						if ( $action_links ) {
 							echo '<ul class="plugin-action-buttons"><li>' . implode( '</li><li>', $action_links ) . '</li></ul>';
 						}
 					?>
-				</div>
-				<div class="name column-name">
-					<h4><a href="<?php echo esc_url( $details_link ); ?>" class="thickbox"><?php echo $title; ?></a></h4>
 				</div>
 				<div class="desc column-description">
 					<p><?php echo $description; ?></p>
@@ -467,7 +469,7 @@ class WP_Plugin_Install_List_Table extends WP_List_Table {
 				<div class="column-compatibility">
 					<?php
 					if ( ! empty( $plugin['tested'] ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $plugin['tested'] ) ), $plugin['tested'], '>' ) ) {
-						echo '<span class="compatibility-untested">' . __( '<strong>Untested</strong> with your version of WordPress' ) . '</span>';
+						echo '<span class="compatibility-untested">' . __( 'Untested with your version of WordPress' ) . '</span>';
 					} elseif ( ! empty( $plugin['requires'] ) && version_compare( substr( $GLOBALS['wp_version'], 0, strlen( $plugin['requires'] ) ), $plugin['requires'], '<' ) ) {
 						echo '<span class="compatibility-incompatible">' . __( '<strong>Incompatible</strong> with your version of WordPress' ) . '</span>';
 					} else {

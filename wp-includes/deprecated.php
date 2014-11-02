@@ -1699,7 +1699,6 @@ function the_author_ID() {
  * and the rest of the content will be removed.
  *
  * @since 0.71
- * @uses apply_filters() Calls 'the_content_rss' on the content before processing.
  *
  * @deprecated 2.9.0
  * @deprecated Use the_content_feed()
@@ -1807,7 +1806,6 @@ function _c( $text, $domain = 'default' ) {
  * contains a context after its last vertical bar.
  *
  * @since 2.5.0
- * @uses translate()
  * @deprecated 3.0.0
  * @deprecated Use _x()
  * @see _x()
@@ -2426,7 +2424,8 @@ function update_usermeta( $user_id, $meta_key, $meta_value ) {
  *
  * @since 2.2.0
  * @deprecated 3.1.0
- * @uses $wpdb WordPress database object for queries
+ *
+ * @global wpdb $wpdb WordPress database abstraction object.
  * @uses $blog_id The Blog id of the blog for those that use more than one blog
  *
  * @param int $id Blog ID.
@@ -3151,8 +3150,6 @@ function update_page_cache( &$pages ) {
  *
  * @since 2.0.0
  * @deprecated 3.4.0
- *
- * @uses do_action() Will call the 'clean_page_cache' hook action.
  *
  * @param int $id Page ID to clean
  */

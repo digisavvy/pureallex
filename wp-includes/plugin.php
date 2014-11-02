@@ -105,6 +105,7 @@ function add_filter( $tag, $function_to_add, $priority = 10, $accepted_args = 1 
  *                  return value.
  */
 function has_filter($tag, $function_to_check = false) {
+	// Don't reset the internal array pointer
 	$wp_filter = $GLOBALS['wp_filter'];
 
 	$has = ! empty( $wp_filter[ $tag ] );
@@ -356,8 +357,6 @@ function current_filter() {
  *
  * @since 3.9.0
  *
- * @uses current_filter()
- *
  * @return string Hook name of the current action.
  */
 function current_action() {
@@ -400,8 +399,6 @@ function doing_filter( $filter = null ) {
  *
  * @since 3.9.0
  *
- * @uses doing_filter()
- *
  * @param string|null $action Optional. Action to check. Defaults to null, which checks
  *                            if any action is currently being run.
  * @return bool Whether the action is currently in the stack.
@@ -419,8 +416,6 @@ function doing_action( $action = null ) {
  * Action API.
  *
  * @since 1.2.0
- *
- * @uses add_filter() Adds an action. Parameter list and functionality are the same.
  *
  * @param string   $tag             The name of the action to which the $function_to_add is hooked.
  * @param callback $function_to_add The name of the function you wish to be called.
@@ -645,8 +640,6 @@ function remove_all_actions($tag, $priority = false) {
  *
  * @since 1.5.0
  *
- * @uses WP_PLUGIN_DIR, WPMU_PLUGIN_DIR
- *
  * @param string $file The filename of plugin.
  * @return string The name of a plugin.
  */
@@ -831,8 +824,6 @@ function register_uninstall_hook( $file, $callback ) {
  * @since 2.5.0
  * @access private
  *
- * @uses $wp_filter Used to process all of the functions in the 'all' hook.
- *
  * @param array $args The collected parameters from the hook that was called.
  */
 function _wp_call_all_hook($args) {
@@ -864,7 +855,7 @@ function _wp_call_all_hook($args) {
  * Functions and static method callbacks are just returned as strings and
  * shouldn't have any speed penalty.
  *
- * @link http://trac.wordpress.org/ticket/3875
+ * @link https://core.trac.wordpress.org/ticket/3875
  *
  * @since 2.2.3
  * @access private

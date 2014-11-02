@@ -2,7 +2,7 @@
 
 window.wp = window.wp || {};
 
-jQuery( document ).ready( function($) {
+jQuery( document ).ready( function( $ ) {
 	var $window = $( window ),
 		$document = $( document ),
 		$adminBar = $( '#wpadminbar' ),
@@ -33,6 +33,7 @@ jQuery( document ).ready( function($) {
 		lastScrollPosition = 0,
 		pageYOffsetAtTop = 130,
 		pinnedToolsTop = 56,
+		sidebarBottom = 20,
 		autoresizeMinHeight = 300,
 		initialMode = window.getUserSetting( 'editor' ),
 		// These are corrected when adjust() runs, except on scrolling if already set.
@@ -147,6 +148,11 @@ jQuery( document ).ready( function($) {
 
 	// We need to wait for TinyMCE to initialize.
 	$document.on( 'tinymce-editor-init.editor-expand', function( event, editor ) {
+		var hideFloatPanels = _.debounce( function() {
+			! $( '.mce-floatpanel:hover' ).length && tinymce.ui.FloatPanel.hideAll();
+			$( '.mce-tooltip' ).hide();
+		}, 1000, true );
+
 		// Make sure it's the main editor.
 		if ( editor.id !== 'content' ) {
 			return;
@@ -166,12 +172,20 @@ jQuery( document ).ready( function($) {
 
 		function mceGetCursorOffset() {
 			var node = editor.selection.getNode(),
-				view, offset;
+				range, view, offset;
 
 			if ( editor.plugins.wpview && ( view = editor.plugins.wpview.getView( node ) ) ) {
 				offset = view.getBoundingClientRect();
 			} else {
-				offset = node.getBoundingClientRect();
+				range = editor.selection.getRng();
+
+				try {
+					offset = range.getClientRects()[0];
+				} catch( er ) {}
+
+				if ( ! offset ) {
+					offset = node.getBoundingClientRect();
+				}
 			}
 
 			return offset.height ? offset : false;
@@ -185,7 +199,23 @@ jQuery( document ).ready( function($) {
 		// others to the top/bottom of the *window* when moving the cursor out of the viewport.
 		function mceKeyup( event ) {
 			var VK = tinymce.util.VK,
-				key = event.keyCode,
+				key = event.keyCode;
+
+			// Bail on special keys.
+			if ( key <= 47 && ! ( key === VK.SPACEBAR || key === VK.ENTER || key === VK.DELETE || key === VK.BACKSPACE ||
+				key === VK.UP || key === VK.RIGHT || key === VK.DOWN || key === VK.LEFT ) ) {
+
+				return;
+			// OS keys, function keys, num lock, scroll lock
+			} else if ( ( key >= 91 && key <= 93 ) || ( key >= 112 && key <= 123 ) || key === 144 || key === 145 ) {
+				return;
+			}
+
+			mceScroll( key );
+		}
+
+		function mceScroll( key ) {
+			var VK = tinymce.util.VK,
 				offset = mceGetCursorOffset(),
 				buffer = 10,
 				cursorTop, cursorBottom, editorTop, editorBottom;
@@ -195,9 +225,8 @@ jQuery( document ).ready( function($) {
 			}
 
 			cursorTop = offset.top + editor.iframeElement.getBoundingClientRect().top;
-			cursorBottom = cursorTop + offset.height;
-			cursorTop = cursorTop - buffer;
-			cursorBottom = cursorBottom + buffer;
+			cursorBottom = cursorTop + offset.height + buffer;
+			cursorTop -= buffer;
 			editorTop = heights.adminBarHeight + heights.toolsHeight + heights.menuBarHeight + heights.visualTopHeight;
 			editorBottom = heights.windowHeight - heights.bottomHeight - heights.statusBarHeight;
 
@@ -206,7 +235,11 @@ jQuery( document ).ready( function($) {
 				return;
 			}
 
-			if ( cursorTop < editorTop && ( key === VK.UP || key === VK.LEFT || key === VK.BACKSPACE ) ) {
+			// WebKit browsers scroll-into-view to the middle of the window but not for arrow keys/backspace.
+			// The others scroll to the top of the window, we need to account for the adminbar and editor toolbar(s).
+			if ( cursorTop < editorTop && ( ! tinymce.Env.webkit ||
+				( key === VK.UP || key === VK.RIGHT || key === VK.DOWN || key === VK.LEFT || key === VK.BACKSPACE ) ) ) {
+
 				window.scrollTo( window.pageXOffset, cursorTop + window.pageYOffset - editorTop );
 			} else if ( cursorBottom > editorBottom ) {
 				window.scrollTo( window.pageXOffset, cursorBottom + window.pageYOffset - editorBottom );
@@ -215,6 +248,8 @@ jQuery( document ).ready( function($) {
 
 		// Adjust when switching editor modes.
 		function mceShow() {
+			$window.on( 'scroll.mce-float-panels', hideFloatPanels );
+
 			setTimeout( function() {
 				editor.execCommand( 'wpAutoResize' );
 				adjust();
@@ -222,13 +257,18 @@ jQuery( document ).ready( function($) {
 		}
 
 		function mceHide() {
-			var wrapHeight = $( '#wpwrap' ).height();
+			$window.off( 'scroll.mce-float-panels' );
 
-			textEditorResize();
+			setTimeout( function() {
+				var top = $contentWrap.offset().top;
 
-			if ( wrapHeight && $window.scrollTop() > wrapHeight ) {
-				window.scrollTo( window.pageXOffset, wrapHeight - 1 );
-			}
+				if ( window.pageYOffset > top ) {
+					window.scrollTo( window.pageXOffset, top - heights.adminBarHeight );
+				}
+
+				textEditorResize();
+				adjust();
+			}, 100 );
 
 			adjust();
 		}
@@ -239,6 +279,10 @@ jQuery( document ).ready( function($) {
 			editor.on( 'hide', mceHide );
 			// Adjust when the editor resizes.
 			editor.on( 'setcontent wp-autoresize wp-toolbar-toggle', adjust );
+			// Scroll to the caret or selection after undo/redo
+			editor.on( 'undo redo', mceScroll );
+
+			$window.off( 'scroll.mce-float-panels' ).on( 'scroll.mce-float-panels', hideFloatPanels );
 		};
 
 		mceUnbind = function() {
@@ -246,6 +290,9 @@ jQuery( document ).ready( function($) {
 			editor.off( 'show', mceShow );
 			editor.off( 'hide', mceHide );
 			editor.off( 'setcontent wp-autoresize wp-toolbar-toggle', adjust );
+			editor.off( 'undo redo', mceScroll );
+
+			$window.off( 'scroll.mce-float-panels' );
 		};
 
 		if ( $wrap.hasClass( 'wp-editor-expand' ) ) {
@@ -432,7 +479,7 @@ jQuery( document ).ready( function($) {
 			$document.height() > ( $sideSortables.height() + postBodyTop + 120 ) && // the sidebar is not the tallest element
 			heights.windowHeight < editorHeight ) { // the editor is taller than the viewport
 
-			if ( heights.sideSortablesHeight > heights.windowHeight || fixedSideTop || fixedSideBottom ) {
+			if ( ( heights.sideSortablesHeight + pinnedToolsTop + sidebarBottom ) > heights.windowHeight || fixedSideTop || fixedSideBottom ) {
 				// Reset when scrolling to the top
 				if ( windowPos + pinnedToolsTop <= postBodyTop ) {
 					$sideSortables.attr( 'style', '' );
@@ -447,8 +494,8 @@ jQuery( document ).ready( function($) {
 							footerTop = $footer.offset().top;
 
 							// don't get over the footer
-							if ( footerTop < sidebarTop + heights.sideSortablesHeight + 20 ) {
-								sidebarTop = footerTop - heights.sideSortablesHeight - 20;
+							if ( footerTop < sidebarTop + heights.sideSortablesHeight + sidebarBottom ) {
+								sidebarTop = footerTop - heights.sideSortablesHeight - 12;
 							}
 
 							$sideSortables.css({
@@ -456,14 +503,14 @@ jQuery( document ).ready( function($) {
 								top: sidebarTop,
 								bottom: ''
 							});
-						} else if ( ! fixedSideBottom && heights.sideSortablesHeight + $sideSortables.offset().top + 20 < windowPos + heights.windowHeight ) {
+						} else if ( ! fixedSideBottom && heights.sideSortablesHeight + $sideSortables.offset().top + sidebarBottom < windowPos + heights.windowHeight ) {
 							// pin the bottom
 							fixedSideBottom = true;
 
 							$sideSortables.css({
 								position: 'fixed',
 								top: 'auto',
-								bottom: '20px'
+								bottom: sidebarBottom
 							});
 						}
 					} else if ( windowPos < lastScrollPosition ) {
@@ -471,12 +518,12 @@ jQuery( document ).ready( function($) {
 						if ( fixedSideBottom ) {
 							// let it scroll
 							fixedSideBottom = false;
-							sidebarTop = $sideSortables.offset().top - 20;
+							sidebarTop = $sideSortables.offset().top - sidebarBottom;
 							footerTop = $footer.offset().top;
 
 							// don't get over the footer
-							if ( footerTop < sidebarTop + heights.sideSortablesHeight + 20 ) {
-								sidebarTop = footerTop - heights.sideSortablesHeight - 20;
+							if ( footerTop < sidebarTop + heights.sideSortablesHeight + sidebarBottom ) {
+								sidebarTop = footerTop - heights.sideSortablesHeight - 12;
 							}
 
 							$sideSortables.css({
@@ -499,6 +546,7 @@ jQuery( document ).ready( function($) {
 			} else {
 				// if the sidebar container is smaller than the viewport, then pin/unpin the top when scrolling
 				if ( windowPos >= ( postBodyTop - pinnedToolsTop ) ) {
+
 					$sideSortables.css( {
 						position: 'fixed',
 						top: pinnedToolsTop
@@ -569,7 +617,7 @@ jQuery( document ).ready( function($) {
 		// Adjust when collapsing the menu, changing the columns, changing the body class.
 		$document.on( 'wp-collapse-menu.editor-expand postboxes-columnchange.editor-expand editor-classchange.editor-expand', adjust )
 			.on( 'postbox-toggled.editor-expand', function() {
-				if ( ! fixedSideTop && ! fixedSideBottom && window.pageYOffset > 20 ) {
+				if ( ! fixedSideTop && ! fixedSideBottom && window.pageYOffset > pinnedToolsTop ) {
 					fixedSideBottom = true;
 					window.scrollBy( 0, -1 );
 					adjust();
@@ -577,6 +625,12 @@ jQuery( document ).ready( function($) {
 				}
 
 				adjust();
+			}).on( 'wp-window-resized.editor-expand', function() {
+				if ( mceEditor && ! mceEditor.isHidden() ) {
+					mceEditor.execCommand( 'wpAutoResize' );
+				} else {
+					textEditorResize();
+				}
 			});
 
 		$textEditor.on( 'focus.editor-expand input.editor-expand propertychange.editor-expand', textEditorResize );

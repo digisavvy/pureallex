@@ -99,7 +99,7 @@ function wp_register_script( $handle, $src, $deps = array(), $ver = false, $in_f
  * </code>
  *
  * @see WP_Dependencies::localize()
- * @link http://core.trac.wordpress.org/ticket/11520
+ * @link https://core.trac.wordpress.org/ticket/11520
  * @global WP_Scripts $wp_scripts The WP_Scripts object for printing scripts.
  *
  * @since 2.6.0
@@ -116,7 +116,8 @@ function wp_localize_script( $handle, $object_name, $l10n ) {
 		if ( ! did_action( 'init' ) )
 			_doing_it_wrong( __FUNCTION__, sprintf( __( 'Scripts and styles should not be registered or enqueued until the %1$s, %2$s, or %3$s hooks.' ),
 				'<code>wp_enqueue_scripts</code>', '<code>admin_enqueue_scripts</code>', '<code>login_enqueue_scripts</code>' ), '3.3' );
-		$wp_scripts = new WP_Scripts();
+
+		return false;
 	}
 
 	return $wp_scripts->localize( $handle, $object_name, $l10n );

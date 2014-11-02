@@ -1161,15 +1161,15 @@ function get_post_type_object( $post_type ) {
  *
  * @global array $wp_post_types List of post types.
  *
- * @see register_post_type()
+ * @see register_post_type() for accepted arguments.
  *
  * @param array|string $args     Optional. An array of key => value arguments to match against
  *                               the post type objects. Default empty array.
  * @param string       $output   Optional. The type of output to return. Accepts post type 'names'
  *                               or 'objects'. Default 'names'.
- * @param string       $operator Optaionl. The logical operation to perform. 'or' means only one
+ * @param string       $operator Optional. The logical operation to perform. 'or' means only one
  *                               element from the array needs to match; 'and' means all elements
- *                               must match. Default 'and'.
+ *                               must match. Accepts 'or' or 'and'. Default 'and'.
  * @return array A list of post type names or objects.
  */
 function get_post_types( $args = array(), $output = 'names', $operator = 'and' ) {
@@ -1352,7 +1352,7 @@ function register_post_type( $post_type, $args = array() ) {
 
 	// If not set, default to the whether the full UI is shown.
 	if ( null === $args->show_in_admin_bar )
-		$args->show_in_admin_bar = true === $args->show_in_menu;
+		$args->show_in_admin_bar = (bool) $args->show_in_menu;
 
 	// If not set, default to the setting for public.
 	if ( null === $args->show_in_nav_menus )
@@ -1789,7 +1789,7 @@ function post_type_supports( $post_type, $feature ) {
  *
  * @since 2.5.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int    $post_id   Optional. Post ID to change post type. Default 0.
  * @param string $post_type Optional. Post type. Accepts 'post' or 'page' to
@@ -2554,7 +2554,7 @@ function wp_post_mime_type_where( $post_mime_types, $table_alias = '' ) {
  *
  * @since 1.0.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  * @see wp_delete_attachment()
  * @see wp_trash_post()
  *
@@ -2799,7 +2799,7 @@ function wp_untrash_post( $post_id = 0 ) {
  *
  * @since 2.9.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post $post Optional. Post ID or post object. Defaults to global $post.
  * @return mixed False on failure.
@@ -2942,8 +2942,6 @@ function wp_get_post_categories( $post_id = 0, $args = array() ) {
  *
  * @since 2.3.0
  *
- * @uses wp_get_object_terms()
- *
  * @param int   $post_id Optional. The Post ID. Does not default to the ID of the
  *                       global $post. Defualt 0.
  * @param array $args Optional. Overwrite the defaults
@@ -2961,8 +2959,6 @@ function wp_get_post_tags( $post_id = 0, $args = array() ) {
  * {@link wp_get_object_terms()}.
  *
  * @since 2.8.0
- *
- * @uses wp_get_object_terms()
  *
  * @param int    $post_id  Optional. The Post ID. Does not default to the ID of the
  *                         global $post. Default 0.
@@ -4719,9 +4715,14 @@ function is_local_attachment($url) {
 function wp_insert_attachment( $args, $file = false, $parent = 0 ) {
 	$defaults = array(
 		'file'        => $file,
-		'post_parent' => $parent
+		'post_parent' => 0
 	);
+
 	$data = wp_parse_args( $args, $defaults );
+
+	if ( ! empty( $parent ) ) {
+		$data['post_parent'] = $parent;
+	}
 
 	$data['post_type'] = 'attachment';
 
@@ -4740,7 +4741,7 @@ function wp_insert_attachment( $args, $file = false, $parent = 0 ) {
  *
  * @since 2.0.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int  $post_id      Attachment ID.
  * @param bool $force_delete Optional. Whether to bypass trash and force deletion.
@@ -4765,12 +4766,6 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	$meta = wp_get_attachment_metadata( $post_id );
 	$backup_sizes = get_post_meta( $post->ID, '_wp_attachment_backup_sizes', true );
 	$file = get_attached_file( $post_id );
-
-	$intermediate_sizes = array();
-	foreach ( get_intermediate_image_sizes() as $size ) {
-		if ( $intermediate = image_get_intermediate_size( $post_id, $size ) )
-			$intermediate_sizes[] = $intermediate;
-	}
 
 	if ( is_multisite() )
 		delete_transient( 'dirsize_cache' );
@@ -4820,10 +4815,13 @@ function wp_delete_attachment( $post_id, $force_delete = false ) {
 	}
 
 	// Remove intermediate and backup images if there are any.
-	foreach ( $intermediate_sizes as $intermediate ) {
-		/** This filter is documented in wp-admin/custom-header.php */
-		$intermediate_file = apply_filters( 'wp_delete_file', $intermediate['path'] );
-		@ unlink( path_join($uploadpath['basedir'], $intermediate_file) );
+	if ( isset( $meta['sizes'] ) && is_array( $meta['sizes'] ) ) {
+		foreach ( $meta['sizes'] as $size => $sizeinfo ) {
+			$intermediate_file = str_replace( basename( $file ), $sizeinfo['file'], $file );
+			/** This filter is documented in wp-admin/custom-header.php */
+			$intermediate_file = apply_filters( 'wp_delete_file', $intermediate_file );
+			@ unlink( path_join( $uploadpath['basedir'], $intermediate_file ) );
+		}
 	}
 
 	if ( is_array($backup_sizes) ) {
@@ -5432,7 +5430,7 @@ function update_post_cache( &$posts ) {
  *
  * @since 2.0.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param int|WP_Post $post Post ID or post object to remove from the cache.
  */
@@ -5590,7 +5588,7 @@ function clean_attachment_cache( $id, $clean_terms = false ) {
  * @access private
  *
  * @see wp_clear_scheduled_hook()
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  *
  * @param string  $new_status New post status.
  * @param string  $old_status Previous post status.
@@ -5782,7 +5780,7 @@ function delete_post_thumbnail( $post ) {
  *
  * @since 3.4.0
  *
- * @global wpdb $wpdb WordPress database access abstraction object.
+ * @global wpdb $wpdb WordPress database abstraction object.
  */
 function wp_delete_auto_drafts() {
 	global $wpdb;

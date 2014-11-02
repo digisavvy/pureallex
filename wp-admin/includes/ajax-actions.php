@@ -286,7 +286,7 @@ function wp_ajax_autocomplete_user() {
 		);
 	}
 
-	wp_die( json_encode( $return ) );
+	wp_die( wp_json_encode( $return ) );
 }
 
 /**
@@ -935,7 +935,8 @@ function wp_ajax_replyto_comment( $action ) {
 		$comment_author       = wp_slash( $user->display_name );
 		$comment_author_email = wp_slash( $user->user_email );
 		$comment_author_url   = wp_slash( $user->user_url );
-		$comment_content      = trim($_POST['content']);
+		$comment_content      = trim( $_POST['content'] );
+		$comment_type         = isset( $_POST['comment_type'] ) ? trim( $_POST['comment_type'] ) : '';
 		if ( current_user_can( 'unfiltered_html' ) ) {
 			if ( ! isset( $_POST['_wp_unfiltered_html_comment'] ) )
 				$_POST['_wp_unfiltered_html_comment'] = '';
@@ -1364,7 +1365,7 @@ function wp_ajax_menu_get_metabox() {
 
 		$markup = ob_get_clean();
 
-		echo json_encode(array(
+		echo wp_json_encode(array(
 			'replace-id' => $type . '-' . $item->name,
 			'markup' => $markup,
 		));
@@ -1393,7 +1394,7 @@ function wp_ajax_wp_link_ajax() {
 	if ( ! isset( $results ) )
 		wp_die( 0 );
 
-	echo json_encode( $results );
+	echo wp_json_encode( $results );
 	echo "\n";
 
 	wp_die();
@@ -1839,7 +1840,7 @@ function wp_ajax_upload_attachment() {
 	if ( isset( $post_data['context'] ) && in_array( $post_data['context'], array( 'custom-header', 'custom-background' ) ) ) {
 		$wp_filetype = wp_check_filetype_and_ext( $_FILES['async-upload']['tmp_name'], $_FILES['async-upload']['name'], false );
 		if ( ! wp_match_mime_types( 'image', $wp_filetype['type'] ) ) {
-			echo json_encode( array(
+			echo wp_json_encode( array(
 				'success' => false,
 				'data'    => array(
 					'message'  => __( 'The uploaded file is not a valid image. Please try again.' ),
@@ -1854,7 +1855,7 @@ function wp_ajax_upload_attachment() {
 	$attachment_id = media_handle_upload( 'async-upload', $post_id, $post_data );
 
 	if ( is_wp_error( $attachment_id ) ) {
-		echo json_encode( array(
+		echo wp_json_encode( array(
 			'success' => false,
 			'data'    => array(
 				'message'  => $attachment_id->get_error_message(),
@@ -1876,7 +1877,7 @@ function wp_ajax_upload_attachment() {
 	if ( ! $attachment = wp_prepare_attachment_for_js( $attachment_id ) )
 		wp_die();
 
-	echo json_encode( array(
+	echo wp_json_encode( array(
 		'success' => true,
 		'data'    => $attachment,
 	) );
@@ -1901,7 +1902,7 @@ function wp_ajax_image_editor() {
 	switch ( $_POST['do'] ) {
 		case 'save' :
 			$msg = wp_save_image($attachment_id);
-			$msg = json_encode($msg);
+			$msg = wp_json_encode($msg);
 			wp_die( $msg );
 			break;
 		case 'scale' :
@@ -2638,7 +2639,7 @@ function wp_ajax_query_themes() {
 function wp_ajax_parse_embed() {
 	global $post, $wp_embed;
 
-	if ( ! $post = get_post( (int) $_REQUEST['post_ID'] ) ) {
+	if ( ! $post = get_post( (int) $_POST['post_ID'] ) ) {
 		wp_send_json_error();
 	}
 
@@ -2646,17 +2647,17 @@ function wp_ajax_parse_embed() {
 		wp_send_json_error();
 	}
 
-	$shortcode = $_POST['shortcode'];
+	$shortcode = wp_unslash( $_POST['shortcode'] );
 	$url = str_replace( '[embed]', '', str_replace( '[/embed]', '', $shortcode ) );
 	$parsed = false;
 	setup_postdata( $post );
 
 	$wp_embed->return_false_on_fail = true;
 
-	if ( is_ssl() && preg_match( '%^\\[embed\\]http://%i', $shortcode ) ) {
+	if ( is_ssl() && preg_match( '%^\\[embed[^\\]]*\\]http://%i', $shortcode ) ) {
 		// Admin is ssl and the user pasted non-ssl URL.
 		// Check if the provider supports ssl embeds and use that for the preview.
-		$ssl_shortcode = preg_replace( '%^\\[embed\\]http://%i', '[embed]https://', $shortcode );
+		$ssl_shortcode = preg_replace( '%^(\\[embed[^\\]]*\\])http://%i', '$1https://', $shortcode );
 		$parsed = $wp_embed->run_shortcode( $ssl_shortcode );
 
 		if ( ! $parsed ) {
@@ -2713,7 +2714,7 @@ function wp_ajax_parse_embed() {
 function wp_ajax_parse_media_shortcode() {
 	global $post, $wp_scripts;
 
-	if ( ! $post = get_post( (int) $_REQUEST['post_ID'] ) ) {
+	if ( ! $post = get_post( (int) $_POST['post_ID'] ) ) {
 		wp_send_json_error();
 	}
 
@@ -2722,7 +2723,7 @@ function wp_ajax_parse_media_shortcode() {
 	}
 
 	setup_postdata( $post );
-	$shortcode = do_shortcode( wp_unslash( $_REQUEST['shortcode'] ) );
+	$shortcode = do_shortcode( wp_unslash( $_POST['shortcode'] ) );
 
 	if ( empty( $shortcode ) ) {
 		wp_send_json_error( array(
