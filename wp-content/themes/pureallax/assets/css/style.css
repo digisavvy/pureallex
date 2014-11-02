@@ -720,6 +720,15 @@ table {
 -------------------------------------------------------------- */
 /* =Genericons and Dashicons
 -------------------------------------------------------------- */
+/* =BLOKK Fonts
+-------------------------------------------------------------- */
+@font-face {
+  font-family: BLOKKNeue-Regular;
+  font-weight: normal;
+  font-style: normal;
+  src: url("../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular.eot");
+  src: url("../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular.eot?#iefix") format("embedded-opentype"), url("../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular.woff") format("woff"), url("../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular.ttf") format("truetype"), url("../fonts/Source_Sans_Pro/BLOKK/BLOKKNeue-Regular.svg#BLOKKNeue-Regular") format("svg");
+}
 /* =Typography
 -------------------------------------------------------------- */
 html {
@@ -1958,29 +1967,31 @@ div#group2 .parallax__layer.parallax__layer--base {
   background: #fff;
 }
 div#group2 .image {
-  background-color: #fff;
-  background-image: url("../img/split-left.jpg");
-  background-image: url("../img/split-left.jpg");
-  background-size: cover;
   float: left;
   display: block;
   margin-right: 2.12766%;
   width: 40.42553%;
   margin-right: 0;
+  background-image: url("../img/split-left.jpg");
+  background-image: url("../img/split-left.jpg");
   min-height: 100vh;
+  background-repeat: no-repeat;
+  margin-right: 0;
+  background-color: #fff;
+  background-size: cover;
   background-position: 0px -331px;
 }
 div#group2 .image:last-child {
   margin-right: 0;
 }
 div#group2 .text {
-  background: #fff;
-  height: 100vh;
-  padding: 50px;
   float: left;
   display: block;
   margin-right: 2.12766%;
   width: 57.44681%;
+  background: #fff;
+  height: 100vh;
+  padding: 50px;
 }
 div#group2 .text:last-child {
   margin-right: 0;
