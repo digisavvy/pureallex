@@ -30,6 +30,7 @@ var gulp = require('gulp'),
 	rimraf = require('gulp-rimraf'), // Helps with removing files and directories in our run tasks
 	zip = require('gulp-zip'), // Using to zip up our packaged theme into a tasty zip file that can be installed in WordPress!
 	plumber = require('gulp-plumber'), // Helps prevent stream crashing on errors
+	filter= require('gulp-filter'),
 	pipe = require('gulp-coffee'),
 	cache = require('gulp-cache');
 
@@ -63,13 +64,16 @@ gulp.task('browser-sync', function() {
 gulp.task('styles', function() {
 	return gulp.src(source+'sass/**/*.scss')
 		.pipe(plumber())
-		.pipe(sass({ style: 'expanded', }))
+		// .pipe(sass({ style: 'expanded', }))
+		.pipe(sass({sourcemap: true, style: 'expanded'}))
 		.pipe(autoprefixer('last 2 version', 'safari 5', 'ie 8', 'ie 9', 'opera 12.1', 'ios 6', 'android 4'))
 		// Write style.css to root theme directory
 		.pipe(plumber.stop())
 		.pipe(gulp.dest(source+'css'))
 		//combine media queries
 		.pipe(cmq())
+		.pipe(filter('**/*.css')) // Filtering stream to only css files
+		.pipe(browserSync.reload({stream:true}))
 		.pipe(rename({ suffix: '-min' }))
 		.pipe(minifycss({keepBreaks:true}))
 		.pipe(minifycss({ keepSpecialComments: 0 }))
@@ -102,9 +106,9 @@ gulp.task('scripts', function() {
  * Look at src/images, optimize the images and send them to the appropriate place
 */
 gulp.task('images', function() {
-	return gulp.src(source+'images/originals/**/*')
+	return gulp.src(source+'img/**/*')
 		.pipe(plugins.cache(plugins.imagemin({ optimizationLevel: 7, progressive: true, interlaced: true })))
-		.pipe(gulp.dest(source+'images/'))
+		.pipe(gulp.dest(source+'img/'))
 		.pipe(plugins.notify({ message: 'Images task complete' }));
 });
 
