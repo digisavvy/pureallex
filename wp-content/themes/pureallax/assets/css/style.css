@@ -42,6 +42,7 @@ and Blueprint http://www.blueprintcss.org/
 /*--------------------------------------------------------------
 1.0 Bourbon, Bitters, Neat
 --------------------------------------------------------------*/
+/*# sourceMappingURL=style.css.map */
 /* Bitters 0.10.0
  * http://bitters.bourbon.io
  * Copyright 2013–2014 thoughtbot, inc.
@@ -938,16 +939,18 @@ a:hover, a:visited:hover {
 /* =Structure/Scaffolding
 -------------------------------------------------------------- */
 body {
+  background: #FFDDBD;
   color: #000;
   font-family: Georgia, Cambria, "Times New Roman", Times, serif;
-  line-height: 1.5em;
+  line-height: 1.25;
   word-break: break-word;
 }
 
 #page {
   width: 100%;
 }
-#page #content {
+
+.home #page #content {
   background-image: url("../img/pattern.jpg");
   background-image: url("../img/pattern.jpg");
   background-repeat: repeat;
@@ -999,12 +1002,35 @@ body {
 }
 .site-branding .masthead {
   float: left;
-  margin-left: 8.51064%;
+}
+@media screen and (min-width: 200px) {
+  .site-branding .masthead {
+    float: left;
+    display: block;
+    margin-right: 6.66667%;
+    width: 100%;
+  }
+  .site-branding .masthead:last-child {
+    margin-right: 0;
+  }
+}
+@media screen and (min-width: 768px) {
+  .site-branding .masthead {
+    float: left;
+    display: block;
+    margin-right: 4.34783%;
+    width: 39.13043%;
+    margin-left: 8.69565%;
+  }
+  .site-branding .masthead:last-child {
+    margin-right: 0;
+  }
 }
 .site-branding .site-title {
   display: inline;
   float: left;
-  max-width: 500px;
+  max-width: 476px;
+  height: 359px;
   font-family: "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
 }
 @media screen and (min-width: 200px) {
@@ -1065,6 +1091,10 @@ body {
   -webkit-transition: all .5s ease-in-out, width 0, height 0, top 0, left 0;
   transition: all .5s ease-in-out, width 0, height 0, top 0, left 0;
 }
+.flexnav ul {
+  padding-left: 0;
+  margin-left: 0;
+}
 .flexnav.opacity {
   padding-left: 0;
 }
@@ -1090,8 +1120,8 @@ body {
   padding: .80em;
   z-index: 2;
   overflow: hidden;
-  color: #222222;
-  background: #a6a6a2;
+  color: black;
+  background: #405a5e;
   border-bottom: 1px solid rgba(0, 0, 0, 0.15);
   white-space: nowrap;
 }
@@ -1142,15 +1172,15 @@ body {
   position: relative;
   top: 1.4em;
   font-size: 12px;
-  color: #666;
+  color: #FFDDBD;
 }
 
 .menu-button {
   position: relative;
   display: block;
   padding: 1em;
-  background: #a6a6a2;
-  color: #222222;
+  background: #405a5e;
+  color: black;
   cursor: pointer;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
@@ -1175,7 +1205,7 @@ body {
   font-size: 16px;
   position: relative;
   top: 1em;
-  color: #666;
+  color: #FFDDBD;
 }
 
 @media all and (min-width: 800px) {
@@ -1199,7 +1229,7 @@ body {
     list-style: none;
     float: left;
     display: block;
-    background-color: #a6a6a2;
+    background-color: #405a5e;
     overflow: visible;
   }
   .flexnav li a {
@@ -1256,7 +1286,7 @@ body {
   list-style: none;
   float: left;
   display: block;
-  background-color: #a6a6a2;
+  background-color: #405a5e;
   width: 20%;
   min-height: 50px;
   overflow: visible;
@@ -1391,7 +1421,31 @@ ul.nav-menu li.current_page_item {
 #primary-nav {
   float: right;
   position: relative;
+  width: 100%;
   z-index: 99;
+}
+@media screen and (min-width: 200px) {
+  #primary-nav {
+    float: left;
+    display: block;
+    margin-right: 6.66667%;
+    width: 100%;
+  }
+  #primary-nav:last-child {
+    margin-right: 0;
+  }
+}
+@media screen and (min-width: 768px) {
+  #primary-nav {
+    float: left;
+    display: block;
+    margin-right: 4.34783%;
+    width: 47.82609%;
+    float: right;
+  }
+  #primary-nav:last-child {
+    margin-right: 0;
+  }
 }
 
 .nav-links a:nth-of-type(2) {
@@ -1930,6 +1984,27 @@ footer .footer-right:last-child {
 div#group1 {
   color: #fff;
 }
+div#group1 a {
+  background: rgba(255, 255, 255, 0.5);
+  display: block;
+  border: solid 11px #fff;
+}
+@media screen and (min-width: 768px) {
+  div#group1 a {
+    padding: 100px;
+  }
+}
+div#group1 .blurb {
+  display: block;
+  line-height: 1.25;
+}
+@media screen and (min-width: 768px) {
+  div#group1 .blurb {
+    font-size: 100px;
+    font-size: 6.25rem;
+    margin: 100px;
+  }
+}
 div#group1 .buttonz {
   background: white;
   border-top: solid 3px #cccccc;
@@ -1990,9 +2065,22 @@ div#group2 .text {
   margin-right: 2.12766%;
   width: 57.44681%;
   background: #fff;
+  color: #999;
   height: 100vh;
   padding: 50px;
 }
 div#group2 .text:last-child {
   margin-right: 0;
+}
+div#group2 .text a, div#group2 .text a:visited {
+  background: #999;
+  color: #fff;
+  border: solid 3px #fff;
+  padding: 20px;
+  margin-top: 30px;
+  display: inline-block;
+  float: right;
+}
+div#group2 .text a:hover, div#group2 .text a:visited:hover {
+  background: #999;
 }

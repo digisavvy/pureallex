@@ -31,7 +31,7 @@
 			<?php tha_header_top(); ?>
 			<div class="site-branding">
 				<div class="masthead">
-					<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" title="<?php the_title(); ?>"><?php bloginfo( 'name' ); ?></a></h1>
+					<h1 class="site-title"><a href="<?php echo esc_url( home_url( '/' ) ); ?>" rel="home" title="<?php the_title(); ?>"><img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/wordcamp.png" /></a></h1>
 					<h2 class="site-description"><?php bloginfo( 'description' ) ?></h2>
 				</div>
 				<nav id="primary-nav" role="navigation" itemscope="itemscope" itemtype="http://schema.org/SiteNavigationElement">

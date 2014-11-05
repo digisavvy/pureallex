@@ -43,6 +43,8 @@ and Blueprint http://www.blueprintcss.org/
 /*--------------------------------------------------------------
 1.0 Bourbon, Bitters, Neat
 --------------------------------------------------------------*/
+/*# sourceMappingURL=style.css.map */
+
 @import "bourbon/bourbon";
 @import "base/base"; // Bitters
 @import "grid-settings";
@@ -91,6 +93,7 @@ and Blueprint http://www.blueprintcss.org/
 	6.3 Content
 	--------------------------------------------------------------*/
 	@import "layouts/content";
+	@import "bourbon/addons/hide-text";
 
 	/*--------------------------------------------------------------
 	6.4 Sidebar
@@ -116,3 +119,4 @@ and Blueprint http://www.blueprintcss.org/
 	6.8 Home Styles
 	--------------------------------------------------------------*/
 	@import "home";
+

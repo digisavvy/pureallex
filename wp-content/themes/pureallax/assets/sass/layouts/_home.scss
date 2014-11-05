@@ -1,6 +1,28 @@
+
+
 div#group1 {
 	color: #fff;
+	a {
+		background: rgba(255,255,255,0.5);
 
+		display: block;
+		border: solid 11px #fff;
+		@include media($md) {
+			padding: 100px;
+		}
+
+	}
+	.blurb {
+
+		display: block;
+		line-height: 1.25;
+
+
+		@include media($md) {
+			@include fontSize(100px);
+			margin: 100px;
+		}
+	}
 	.parallax__layer--fore {
 
 	}
@@ -35,8 +57,22 @@ div#group2 {
 	.text {
 		@include span-columns( 7 );
 		background: #fff;
+		color: #999;
 		height: 100vh;
 		padding: 50px;
+		a,a:visited {
+			background: #999;
+			color: #fff;
+			border: solid 3px #fff;
+			padding: 20px;
+			margin-top: 30px;
+			@include inline-block;
+			float: right;
+
+			&:hover {
+				background: #999;
+			}
+		}
 
 	}
 }

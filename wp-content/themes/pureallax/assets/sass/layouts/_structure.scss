@@ -4,20 +4,20 @@ html {
 
 }
 body {
+	background: #FFDDBD;
 	color: #000;
 	font-family: $content;
-	line-height: 1.5em;
+	line-height: 1.25;
 	word-break: break-word;
 }
 #page {
 	 @include fill-parent;
-
-	 #content {
-	 	@include background-image( url("../img/pattern.jpg") );
-	 	background-repeat: repeat;
-	 }
-
 }
+.home #page 	 #content {
+ 	@include background-image( url("../img/pattern.jpg") );
+ 	background-repeat: repeat;
+ }
+
 .wrap {}
 
 #main {

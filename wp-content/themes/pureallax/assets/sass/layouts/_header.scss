@@ -8,12 +8,22 @@
 
 	.masthead {
 		float:left;
-		@include shift( 1 );
+		@include media($sm) {
+			@include span-columns( 4 );
+		}
+		@include media($md) {
+			@include span-columns( 2.5 );
+			@include shift( .5 );
+		}
+
 	}
 	.site-title {
 		display:inline;
 		float: left;
-		max-width: 500px;
+		max-width: 476px;
+		height: 359px;
+		font-family: $title;
+
 		@include media($sm) {
 			@include fontSize(35px);
 		}
@@ -23,7 +33,8 @@
 		@include media($md) {
 			@include fontSize(75px);
 		}
-		font-family: $title;
+
+
 	}
 
 	.site-description {

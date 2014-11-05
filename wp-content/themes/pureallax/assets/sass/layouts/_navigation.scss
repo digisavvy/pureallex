@@ -68,7 +68,16 @@ ul.nav-menu li.current_page_item {
 #primary-nav {
 	float: right;
 	position: relative;
+	width: 100%;
 	z-index: 99;
+
+	@include media($sm) {
+		@include span-columns( 4 );
+	}
+	@include media($md) {
+		@include span-columns( 3 );
+		float: right;
+	}
 }
 
 .nav-links a:nth-of-type(2) {

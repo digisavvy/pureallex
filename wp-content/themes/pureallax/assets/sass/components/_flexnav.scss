@@ -1,7 +1,7 @@
 /* Flexnav Base Styles */
 
-$nav_text: #222;
-$top_level: #a6a6a2;
+$nav_text: #000;
+$top_level: #405A5E;
 $second_level: #b2b2af;
 $third_level: #bfbfbc;
 $fourth_level: #cbcbc9;
@@ -15,7 +15,10 @@ $fourth_level: #cbcbc9;
 	-moz-transition: all .5s ease-in-out;
 	-ms-transition: all .5s ease-in-out;
 	transition: all .5s ease-in-out, width 0, height 0, top 0, left 0;
-
+	ul {
+		padding-left: 0;
+		margin-left: 0;
+	}
   &.opacity {
     // opacity: 0;
     padding-left: 0;
@@ -104,7 +107,7 @@ $fourth_level: #cbcbc9;
 			position: relative;
 			top: 1.4em;
 			font-size: 12px;
-			color: #666;
+			color: #FFDDBD;
 		}
 	}
 }
@@ -139,7 +142,7 @@ $fourth_level: #cbcbc9;
 			font-size: 16px;
 			position: relative;
 			top: 1em;
-			color: #666;
+			color: #FFDDBD;
 		}
 	}
 }
