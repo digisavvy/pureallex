@@ -79,9 +79,17 @@
 
 #group1 {
 	z-index: 5; /* slide over group 2 */
+	.title {
+		color: #fff;
+		background: rgba(0,0,0,0.8);
+	}
 
+
+	a, a:visited {
+		color: blue;
+	}
 	.parallax__layer--base {
-		@include background-image( url("../img/sky.jpg") );
+		@include background-image( url("../img/no-lifeguard.jpg") );
 		background-repeat: no-repeat;
 		background-size:cover;
 	}
@@ -98,44 +106,94 @@
 }
 
 
-  #group2 {
-    z-index: 3; /* slide under groups 1 and 3 */
-  }
-  #group2 .parallax__layer--back {
+	#group2 {
+	z-index: 3; /* slide under groups 1 and 3 */
+	}
 
-  }
+	#group3 {
+		z-index: 4; /* slide over group 2 and 4 */
 
-  #group3 {
-    z-index: 4; /* slide over group 2 and 4 */
-  }
-  #group3 .parallax__layer--base {
-    background: rgb(153,216,101);
-  }
+		.title {
+			text-align: right;
+			position: absolute;
+			left: 56%;
+			width: 60%;
+		}
+		.parallax__layer--fore {
+			background-color: rgba(255,255,255,.7);
+			height: 50vh;
+			position: relative;
+			top: 30%;
+			&:after {
+				// // @include background-image( url("../img/homer.png") );
+				// background: url(../img/homer.png);
+				content: "";
+				background-image: url(../img/homer.png);
+				background-repeat: no-repeat;
+				background-size:contain;
+				opacity: 0.5;
+				top: 0;
+				left: 0;
+				bottom: 0;
+				right: 0;
+				position: absolute;
+				z-index: -1;
+			}
+		}
 
-  #group4 {
-    z-index: 2; /* slide under group 3 and 5 */
-  }
-  #group4 .parallax__layer--deep {
-  }
+		.parallax__layer--base {
+			@include background-image( url("../img/sky.jpg") );
+			background-repeat: no-repeat;
+			background-size:cover;
+		}
+	}
 
-  #group5 {
-    z-index: 3; /* slide over group 4 and 6 */
-  }
-  #group5 .parallax__layer--base {
-    background: rgb(214,229,100);
-  }
+	#group4 {
+		z-index: 2; /* slide under group 3 and 5 */
+	}
+		#group4 .parallax__layer--deep {
+	}
 
-  #group6 {
-    z-index: 2; /* slide under group 5 and 7 */
-  }
-  #group6 .parallax__layer--back {
-    background: rgb(245,235,100);
-  }
+	#group5 {
+		background: #000;
+		color: #fff;
+		z-index: 3; /* slide over group 4 and 6 */
+		box-shadow: -50px 0 100px #000;
+		.parallax__layer--base {
+			@include background-image( url("../img/yamato.jpg") );
+			background-repeat: no-repeat;
+			background-size:cover;
+		}
+		.parallax__layer--back {
+			background-color: rgba(255,255,255,0.8);
+		}
+		div.parallax__layer--fore {
+			background: rgba(255,255,255,0.8);
+			width: 450px;
+			margin: auto;
+			height:450px;
+			border-radius: 100%;
+			color: #000;
+			border: #fff solid 5px;
+			right: 45%;
+		}
+
+	}
+
+	#group6 {
+		z-index: 2; /* slide under group 5 and 7 */
+
+
+	}
+
 
   #group7 {
     z-index: 3; /* slide over group 7 */
+    .parallax__layer--base {
+    	@include background-image( url("../img/anus.jpg") );
+    	background-repeat: no-repeat;
+	background-size: cover;
+    }
   }
-  #group7 .parallax__layer--base {
-    background: rgb(255,241,100);
-  }
+
 

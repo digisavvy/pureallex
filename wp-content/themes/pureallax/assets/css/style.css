@@ -962,12 +962,34 @@ body {
 
 #primary {
   margin: auto;
-  width: 100%;
+  padding: 0 30px;
 }
 #primary:after {
   content: "";
   display: table;
   clear: both;
+}
+@media screen and (min-width: 200px) {
+  #primary {
+    float: left;
+    display: block;
+    margin-right: 6.66667%;
+    width: 100%;
+  }
+  #primary:last-child {
+    margin-right: 0;
+  }
+}
+@media screen and (min-width: 768px) {
+  #primary {
+    float: left;
+    display: block;
+    margin-right: 4.34783%;
+    width: 65.21739%;
+  }
+  #primary:last-child {
+    margin-right: 0;
+  }
 }
 #primary ul {
   list-style: none;
@@ -978,7 +1000,29 @@ body {
 
 #secondary {
   margin: 20px auto;
-  width: 100%;
+  padding: 0 30px;
+}
+@media screen and (min-width: 200px) {
+  #secondary {
+    float: left;
+    display: block;
+    margin-right: 6.66667%;
+    width: 100%;
+  }
+  #secondary:last-child {
+    margin-right: 0;
+  }
+}
+@media screen and (min-width: 768px) {
+  #secondary {
+    float: left;
+    display: block;
+    margin-right: 4.34783%;
+    width: 30.43478%;
+  }
+  #secondary:last-child {
+    margin-right: 0;
+  }
 }
 
 /*--------------------------------------------------------------
@@ -1919,9 +1963,16 @@ footer .footer-right:last-child {
   z-index: 5;
   /* slide over group 2 */
 }
+#group1 .title {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.8);
+}
+#group1 a, #group1 a:visited {
+  color: blue;
+}
 #group1 .parallax__layer--base {
-  background-image: url("../img/sky.jpg");
-  background-image: url("../img/sky.jpg");
+  background-image: url("../img/no-lifeguard.jpg");
+  background-image: url("../img/no-lifeguard.jpg");
   background-repeat: no-repeat;
   background-size: cover;
 }
@@ -1941,9 +1992,36 @@ footer .footer-right:last-child {
   z-index: 4;
   /* slide over group 2 and 4 */
 }
-
+#group3 .title {
+  text-align: right;
+  position: absolute;
+  left: 56%;
+  width: 60%;
+}
+#group3 .parallax__layer--fore {
+  background-color: rgba(255, 255, 255, 0.7);
+  height: 50vh;
+  position: relative;
+  top: 30%;
+}
+#group3 .parallax__layer--fore:after {
+  content: "";
+  background-image: url(../img/homer.png);
+  background-repeat: no-repeat;
+  background-size: contain;
+  opacity: 0.5;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  position: absolute;
+  z-index: -1;
+}
 #group3 .parallax__layer--base {
-  background: #99d865;
+  background-image: url("../img/sky.jpg");
+  background-image: url("../img/sky.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 #group4 {
@@ -1952,12 +2030,31 @@ footer .footer-right:last-child {
 }
 
 #group5 {
+  background: #000;
+  color: #fff;
   z-index: 3;
   /* slide over group 4 and 6 */
+  -webkit-box-shadow: -50px 0 100px #000;
+          box-shadow: -50px 0 100px #000;
 }
-
 #group5 .parallax__layer--base {
-  background: #d6e564;
+  background-image: url("../img/yamato.jpg");
+  background-image: url("../img/yamato.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+#group5 .parallax__layer--back {
+  background-color: rgba(255, 255, 255, 0.8);
+}
+#group5 div.parallax__layer--fore {
+  background: rgba(255, 255, 255, 0.8);
+  width: 450px;
+  margin: auto;
+  height: 450px;
+  border-radius: 100%;
+  color: #000;
+  border: #fff solid 5px;
+  right: 45%;
 }
 
 #group6 {
@@ -1965,17 +2062,15 @@ footer .footer-right:last-child {
   /* slide under group 5 and 7 */
 }
 
-#group6 .parallax__layer--back {
-  background: #f5eb64;
-}
-
 #group7 {
   z-index: 3;
   /* slide over group 7 */
 }
-
 #group7 .parallax__layer--base {
-  background: #fff164;
+  background-image: url("../img/anus.jpg");
+  background-image: url("../img/anus.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
 /*--------------------------------------------------------------

@@ -12,6 +12,7 @@ body {
 }
 #page {
 	 @include fill-parent;
+
 }
 .home #page 	 #content {
  	@include background-image( url("../img/pattern.jpg") );
@@ -27,7 +28,13 @@ body {
 #primary {
 	@include clearfix;
 	margin: auto;
-	width: 100%;
+	padding: 0 30px;
+	@include media($sm) {
+		@include span-columns( 4 );
+	}
+	@include media($md) {
+		@include span-columns( 4 );
+	}
 
 	ul {
 		list-style: none;
@@ -40,5 +47,11 @@ body {
 }
 #secondary {
 	margin: 20px auto;
-	width: 100%;
+	padding: 0 30px;
+	@include media($sm) {
+		@include span-columns( 4 );
+	}
+	@include media($md) {
+		@include span-columns( 2 );
+	}
 }
