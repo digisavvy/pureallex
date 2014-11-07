@@ -84,7 +84,7 @@ get_header(); ?>
 
 	<div id="group7" class="parallax__group">
 		<div class="parallax__layer parallax__layer--base">
-			<div class="title">Questions?</div>
+			<div class="title"></div>
 		</div>
 	</div>
 
