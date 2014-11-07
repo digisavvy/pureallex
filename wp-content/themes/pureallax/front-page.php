@@ -32,7 +32,7 @@ get_header(); ?>
 					by something that gets demoed here.
 				</p>
 
-				<p><a class="button" href="http://briangardner.com/register/">Sign Up Now</a></p>
+				<p><a class="button" href="#">A Link to Nowhere!</a></p>
 
 			</div>
 		</div>
@@ -44,10 +44,10 @@ get_header(); ?>
 
 	<div id="group3" class="parallax__group">
 		<div class="parallax__layer parallax__layer--fore">
-			<div class="title">Foreground Layer</div>
+			<div class="title">"Trying is the first step toward failure"<br>— Homer J. Simpson</div>
 		</div>
 		<div class="parallax__layer parallax__layer--base">
-			<div class="title">Base Layer</div>
+			<div class="title"> </div>
 		</div>
 	</div>
 
@@ -65,11 +65,12 @@ get_header(); ?>
 
 	<div id="group5" class="parallax__group">
 		<div class="parallax__layer parallax__layer--fore">
-			<div class="title">Foreground Layer</div>
+			<div class="title">Now With More Lard!!</div>
 		</div>
 			<div class="parallax__layer parallax__layer--base">
 				<div class="title">Base Layer</div>
 			</div>
+
 	</div>
 
 	<div id="group6" class="parallax__group">
@@ -83,7 +84,7 @@ get_header(); ?>
 
 	<div id="group7" class="parallax__group">
 		<div class="parallax__layer parallax__layer--base">
-			<div class="title">Base Layer</div>
+			<div class="title">Questions?</div>
 		</div>
 	</div>
 
